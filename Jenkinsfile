@@ -21,5 +21,15 @@ pipeline {
                 bat 'mvnw.cmd test'
             }
         }
+
+        stage('Code Quality') {
+            steps {
+                echo 'Running SonarCloud code quality analysis...'
+
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    bat 'mvnw.cmd verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.qualitygate.wait=true'
+                }
+            }
+        }
     }
 }
