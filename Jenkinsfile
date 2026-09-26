@@ -41,5 +41,12 @@ pipeline {
                 bat 'C:\\Users\\manas\\Downloads\\trivy_0.74.0_windows-64bit\\trivy.exe fs . --scanners vuln --severity HIGH,CRITICAL --exit-code 1'
             }
         }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application to staging...'
+                powershell '.\\scripts\\deploy-staging.ps1'
+            }
+        }
     }
 }
