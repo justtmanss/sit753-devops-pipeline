@@ -29,7 +29,7 @@ if (Test-Path "$productionDir\pid.txt") {
 # Promote the exact artifact that passed staging
 Copy-Item $stagingJar $productionJar -Force
 
-# Start production application on port 8080
+# Start production application independently of Jenkins
 $process = Start-Process `
     -FilePath "java" `
     -ArgumentList "-jar `"$productionJar`" --server.port=8082" `
@@ -42,3 +42,34 @@ Write-Host "PetClinic released to production."
 Write-Host "Build: $buildNumber"
 Write-Host "URL: http://localhost:8082"
 Write-Host "PID: $($process.Id)"
+
+# Wait for production to become healthy
+Write-Host "Waiting for production application to start..."
+
+$healthy = $false
+
+for ($i = 1; $i -le 30; $i++) {
+    Start-Sleep -Seconds 2
+
+    try {
+        $response = Invoke-WebRequest `
+            -Uri "http://localhost:8082/actuator/health" `
+            -UseBasicParsing `
+            -TimeoutSec 3
+
+        if ($response.StatusCode -eq 200) {
+            $healthy = $true
+            break
+        }
+    }
+    catch {
+        # Application is still starting
+    }
+}
+
+if (-not $healthy) {
+    throw "Production application failed health check on port 8082."
+}
+
+Write-Host "Production deployment successful."
+Write-Host "Health check: PASSED"
