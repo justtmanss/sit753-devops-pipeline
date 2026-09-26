@@ -12,7 +12,7 @@ if (-not $jar) {
 
 New-Item -ItemType Directory -Force -Path $deployDir | Out-Null
 
-# Stop existing staging application
+# Stop previous staging process
 if (Test-Path "$deployDir\pid.txt") {
     $oldPid = Get-Content "$deployDir\pid.txt"
 
@@ -24,11 +24,11 @@ if (Test-Path "$deployDir\pid.txt") {
     Remove-Item "$deployDir\pid.txt" -Force
 }
 
-# Copy the versioned artifact
+# Copy artifact
 $targetJar = "$deployDir\petclinic-$buildNumber.jar"
 Copy-Item $jar.FullName $targetJar -Force
 
-# Start staging application on port 8081
+# Start application
 $process = Start-Process `
     -FilePath "java" `
     -ArgumentList "-jar `"$targetJar`" --server.port=8081" `
@@ -37,7 +37,35 @@ $process = Start-Process `
 
 $process.Id | Out-File "$deployDir\pid.txt"
 
-Write-Host "PetClinic deployed to staging."
+# Wait for application startup
+Write-Host "Waiting for PetClinic to start..."
+
+$healthy = $false
+
+for ($i = 1; $i -le 30; $i++) {
+    Start-Sleep -Seconds 2
+
+    try {
+        $response = Invoke-WebRequest `
+            -Uri "http://localhost:8081/actuator/health" `
+            -UseBasicParsing `
+            -TimeoutSec 3
+
+        if ($response.StatusCode -eq 200) {
+            $healthy = $true
+            break
+        }
+    }
+    catch {
+        # Application is still starting
+    }
+}
+
+if (-not $healthy) {
+    throw "Staging application failed health check on port 8081."
+}
+
+Write-Host "PetClinic staging deployment successful."
 Write-Host "Build: $buildNumber"
+Write-Host "Health check: PASSED"
 Write-Host "URL: http://localhost:8081"
-Write-Host "PID: $($process.Id)"
