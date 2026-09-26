@@ -48,5 +48,11 @@ pipeline {
                 powershell '.\\scripts\\deploy-staging.ps1'
             }
         }
+        stage('Release') {
+            steps {
+                echo 'Releasing application to production...'
+                powershell '.\\scripts\\release-production.ps1'
+            }
+        }
     }
 }
