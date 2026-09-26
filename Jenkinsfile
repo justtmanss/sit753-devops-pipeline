@@ -48,10 +48,37 @@ pipeline {
                 powershell '.\\scripts\\deploy-staging.ps1'
             }
         }
+
         stage('Release') {
             steps {
                 echo 'Releasing application to production...'
                 powershell '.\\scripts\\release-production.ps1'
+            }
+        }
+
+        stage('Monitoring') {
+            steps {
+                echo 'Monitoring production application...'
+
+                powershell '''
+                    $url = "http://localhost:8082/actuator/health"
+
+                    Write-Host "Checking production health..."
+                    Write-Host "URL: $url"
+
+                    $response = Invoke-WebRequest `
+                        -Uri $url `
+                        -UseBasicParsing `
+                        -TimeoutSec 10
+
+                    if ($response.StatusCode -ne 200) {
+                        throw "Production health check failed."
+                    }
+
+                    Write-Host "Production status: HEALTHY"
+                    Write-Host "HTTP Status: $($response.StatusCode)"
+                    Write-Host "Monitoring check: PASSED"
+                '''
             }
         }
     }
