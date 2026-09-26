@@ -32,7 +32,7 @@ Copy-Item $stagingJar $productionJar -Force
 # Start production application on port 8080
 $process = Start-Process `
     -FilePath "java" `
-    -ArgumentList "-jar `"$productionJar`" --server.port=8080" `
+    -ArgumentList "-jar `"$productionJar`" --server.port=8082" `
     -WorkingDirectory $productionDir `
     -PassThru
 
@@ -40,5 +40,5 @@ $process.Id | Out-File "$productionDir\pid.txt"
 
 Write-Host "PetClinic released to production."
 Write-Host "Build: $buildNumber"
-Write-Host "URL: http://localhost:8080"
+Write-Host "URL: http://localhost:8082"
 Write-Host "PID: $($process.Id)"
