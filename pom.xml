@@ -37,6 +37,8 @@
     <spring-format.version>0.0.47</spring-format.version>
     <sonar.organization>justtmanss</sonar.organization>
     <sonar.projectKey>justtmanss_sit753-devops-pipeline</sonar.projectKey>
+    <postgresql.version>42.7.12</postgresql.version>
+    <tomcat.version>11.0.25</tomcat.version>
   </properties>
 
   <dependencies>
