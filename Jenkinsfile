@@ -26,9 +26,19 @@ pipeline {
             steps {
                 echo 'Running SonarCloud code quality analysis...'
 
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                withCredentials([
+                    string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')
+                ]) {
                     bat 'mvnw.cmd verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.qualitygate.wait=true'
                 }
+            }
+        }
+
+        stage('Security') {
+            steps {
+                echo 'Running Trivy security scan...'
+
+                bat 'C:\\Users\\manas\\Downloads\\trivy_0.74.0_windows-64bit\\trivy.exe fs . --scanners vuln --severity HIGH,CRITICAL --exit-code 1'
             }
         }
     }
